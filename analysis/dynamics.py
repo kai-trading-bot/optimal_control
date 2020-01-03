@@ -66,6 +66,31 @@ def sim(func, init: np.ndarray, tmax: int, n: int, stubborn: bool = False) -> pd
     return pd.DataFrame(Theta, columns=['agent_' + str(j) for j in range(n)])
 
 
+def sim_beta(func, Theta: np.ndarray, tmax: int, beta:int, n: int, stubborn: bool=False) -> pd.DataFrame:
+
+    for t in range(1, tmax):
+        theta_old = Theta[t-1, :]
+        theta_new = theta_old.copy()
+        p = int(np.ceil(np.random.rand(1) * (n - 1))[0])
+        for i in range(n):
+            if ((i!=p) & ((theta_old[i] - theta_old[p]) != 0) & (np.abs(theta_old[i] - theta_old[p]) != 1) & (theta_old[i] != 1) & (theta_old[i] != 0)):
+                if theta_old[p] > theta_old[i]:
+                    theta_new[i] = theta_old[i] + (w * t_weight * (func(theta_old[i] - theta_old[p], b=beta)) * (func(theta_old[i], b=beta)))
+                else:
+                    theta_new[i] = theta_old[i] - (w * t_weight * (func(theta_old[i] - theta_old[p], b=beta)) * (func(theta_old[i], b=beta)))
+            else:
+                theta_new[i] = theta_old[i]
+        if stubborn:
+            theta_new[n-1] = max(0, theta_new[n-2] - 0.5) # Stubborn agent
+        for j in range(n):
+            if theta_new[j] > 1:
+                theta_new[j] = 1
+            elif theta_new[j] < 0:
+                theta_new[j] = 0
+        Theta[t] = theta_new
+    return pd.DataFrame(Theta, columns = ['agent_' + str(n) for n in range(n)])
+
+
 def plot(data: pd.DataFrame, function: str, n: int, beta: float, time: int) -> None:
     pd.DataFrame(data, columns=['agent_' + str(j) for j in range(n)]).plot()
     plt.ylabel('$\Theta_i(t)$')
