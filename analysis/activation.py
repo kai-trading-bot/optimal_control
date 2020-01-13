@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import itertools
 import matplotlib.pyplot as plt
+import config
 from typing import Union
 
 __author__ = 'kqureshi'
@@ -81,4 +82,5 @@ class Surface:
         ax.set_xlabel(c1)
         ax.set_ylabel(c2)
         ax.set_zlabel(c3 + '({}, {})'.format(c1, c2))
+        plt.savefig('{}surface.png'.format(config.figure_dir))
         plt.show()
