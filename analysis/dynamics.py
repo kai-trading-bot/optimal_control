@@ -14,13 +14,32 @@ n, beta, tmax, t_weight = 3, 2, 500, 1
 w = 1 / n
 
 
-def sig(x: float, beta: float = 2) -> float:
+class Functions:
+
+    def sigmoid(self, x: float) -> float:
+        raise NotImplementedError
+
+    def trust(self, x: float) -> float:
+        raise NotImplementedError
+
+    def softmax(self, x: float) -> float:
+        raise NotImplementedError
+
+    def tanh(self, x: float) -> float:
+        raise NotImplementedError
+
+    def arctan(self, x: float) -> float:
+        raise NotImplementedError
+
+
+def sig(x: float, beta: float = -1) -> float:
     return 1 / (1 + np.exp(beta * x))
 
 
 class Gradients:
+
     def __init__(self):
-        beta = 2
+        self.beta = 2
 
     def softmax(self, x: float) -> float:
         return np.exp(self.beta * x) / (np.exp(self.beta * x) + 1)
@@ -36,6 +55,36 @@ class Gradients:
 
     def arctan(self, x: float) -> float:
         return 1 / (1 + x ** 2)
+
+
+def vector_field(beta: float = 2, xmin: float = 0, xmax: float = 100,
+                 tmin: float = 0, tmax: float = 100, partition: int = 10, trust: bool = True,
+                 save: bool = False) -> None:
+    times = np.linspace(tmin, partition, tmax)
+    x = np.linspace(xmin, partition, xmax)
+    if trust:
+        x = sig(-beta * np.log(x / (1 - x)))
+    else:
+        x = sig(x)
+
+    # Strogatz
+    T, X = np.meshgrid(times, x)
+    dxdt = X * (1 - X)
+    dt = np.ones(X.shape)
+    dx = dxdt * dt
+    plt.quiver(T, X, dt, dx, headwidth=0., angles='xy', scale=15.)
+    plt.show()
+    plt.xlabel('Time')
+    if trust:
+        plt.ylabel('M(x, b)')
+        plt.title('Vector Field: Trust')
+        if save:
+            plt.savefig(os.environ['HOME'] + '/Dropbox (MIT)/optimal_control/figures/VF_Trust.png')
+    else:
+        plt.ylabel('S(x)')
+        plt.title('Vector Field: Sigmoid')
+        if save:
+            plt.savefig(os.environ['HOME'] + '/Dropbox (MIT)/optimal_control/figures/VF_Sigmoid.png')
 
 
 def sim(func, init: np.ndarray, tmax: int, n: int, stubborn: bool = False) -> pd.DataFrame:
